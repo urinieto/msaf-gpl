@@ -83,7 +83,7 @@ import msaf.input_output as io
 from msaf.algorithms.interface import SegmenterInterface
 
 # Local stuff
-import plca
+from . import plca
 
 logging.basicConfig(level=logging.INFO,
                     format='%(levelname)s %(name)s %(asctime)s '
@@ -181,7 +181,7 @@ def segment_song(seq, rank=4, win=32, seed=None,
         kwargs['initH'] = np.ones((rank, T)) / T
 
     outputs = []
-    for n in xrange(nrep):
+    for n in range(nrep):
         outputs.append(plca.SIPLCA.analyze(seq, rank=rank, win=win, **kwargs))
     div = [x[-1] for x in outputs]
     W, Z, H, norm, recon, div = outputs[np.argmin(div)]
@@ -199,7 +199,7 @@ def segment_song(seq, rank=4, win=32, seed=None,
         #logger.debug('Redoing SIPLCA analysis (len(Z) = %d, number of '
                     #'low energy frames = %d).', len(Z), nlowen_recon)
         outputs = []
-        for n in xrange(nrep):
+        for n in range(nrep):
             outputs.append(plca.SIPLCA.analyze(seq, rank=rank, win=win,
                                                **kwargs))
         div = [x[-1] for x in outputs]
@@ -268,11 +268,11 @@ def nmf_analysis_to_segmentation_using_viterbi_path(seq, win, W, Z, H,
     rank = len(Z)
     T = H.shape[1]
     likelihood = np.empty((rank, T))
-    for z in xrange(rank):
+    for z in range(rank):
         likelihood[z] = plca.SIPLCA.reconstruct(W[:,z], Z[z], H[z]).sum(0)
 
     transmat = np.zeros((rank, rank))
-    for z in xrange(rank):
+    for z in range(rank):
         transmat[z,:] = (1 - selfloopprob) / (rank - 1 + np.finfo(float).eps)
         transmat[z,z] = selfloopprob
 
@@ -282,7 +282,7 @@ def nmf_analysis_to_segmentation_using_viterbi_path(seq, win, W, Z, H,
     lattice = np.zeros(loglikelihood.shape)
     traceback = np.zeros(loglikelihood.shape, dtype=np.int)
     lattice[0] = loglikelihood[0]
-    for n in xrange(1, T):
+    for n in range(1, T):
         pr = logtransmat.T + lattice[:,n-1]
         lattice[:,n] = np.max(pr, axis=1) + loglikelihood[:,n]
         traceback[:,n] = np.argmax(pr, axis=1)
@@ -344,12 +344,12 @@ def convert_labels_to_segments(labels, num_frames):
     return boundaryidx, seglabels
 
 def _compute_summary_correlation(A, B):
-    return sum(np.correlate(A[x], B[x], 'full') for x in xrange(A.shape[0]))
+    return sum(np.correlate(A[x], B[x], 'full') for x in range(A.shape[0]))
 
 def shift_key_to_zero(W, Z, H):
     newW = np.zeros(W.shape)
     newH = np.zeros(H.shape)
-    for k in xrange(len(Z)):
+    for k in range(len(Z)):
         key_profile = H[k].sum(1)
         main_key = np.argmax(key_profile)
         newW[:,k] = plca.shift(W[:,k], main_key, axis=0, circular=True)
@@ -378,7 +378,7 @@ def use_in_bounds(audio_file, in_bound_idxs, feats, config):
     # Inititalize the W and H matrices using the previously found bounds
     initW = np.zeros((feats.shape[1], n_segments, max_beats_segment))
     initH = np.zeros((n_segments, feats.shape[0]))
-    for i in xrange(n_segments):
+    for i in range(n_segments):
         dur = in_bound_idxs[i+1] - in_bound_idxs[i]
         initW[:, i, :dur] = feats[in_bound_idxs[i]:in_bound_idxs[i+1]].T
         initH[i, in_bound_idxs[i]] = 1

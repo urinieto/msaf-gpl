@@ -53,7 +53,6 @@ import scipy as sp
 import scipy.signal
 
 import matplotlib.pyplot as plt
-import plottools
 
 logging.basicConfig(level=logging.INFO,
                     format='%(levelname)s %(name)s %(asctime)s '
@@ -119,8 +118,6 @@ class PLCA(object):
         Performs PLCA decomposition using the EM algorithm from [2].
     reconstruct(W, Z, H, norm=1.0)
         Reconstructs input matrix from the PLCA parameters W, Z, and H.
-    plot(V, W, Z, H)
-        Makes a pretty plot of V and the decomposition.
 
     initialize()
         Randomly initializes the parameters.
@@ -280,15 +277,11 @@ class PLCA(object):
         params.H = H
 
         oldlogprob = -np.inf
-        for n in xrange(niter):
+        for n in range(niter):
             logprob, WZH = params.do_estep(W, Z, H)
             if n % printiter == 0:
                 pass
                 #logger.debug('Iteration %d: logprob = %f', n, logprob)
-            if plotiter and n % plotiter == 0:
-                params.plot(V, W, Z, H, n)
-                if not plotfilename is None:
-                    plt.savefig('%s_%04d.png' % (plotfilename, n))
             if logprob < oldlogprob:
                 pass
                 #logger.debug('Warning: logprob decreased from %f to %f at '
@@ -309,10 +302,6 @@ class PLCA(object):
             params.Z = Z
             params.H = H
 
-        if plotiter:
-            params.plot(V, W, Z, H, n)
-            if not plotfilename is None:
-                plt.savefig('%s_%04d.png' % (plotfilename, n))
         #logger.debug('Iteration %d: final logprob = %f', n, logprob)
         recon = norm * WZH
         return W, Z, H, norm, recon, logprob
@@ -321,14 +310,6 @@ class PLCA(object):
     def reconstruct(W, Z, H, norm=1.0):
         """Computes the approximation to V using W, Z, and H"""
         return norm * np.dot(W * Z, H)
-
-    @classmethod
-    def plot(cls, V, W, Z, H, curriter=-1):
-        WZH = cls.reconstruct(W, Z, H)
-        plottools.plotall([V, WZH], subplot=(3,1), align='xy', cmap=plt.cm.hot)
-        plottools.plotall(9 * [None] + [W, Z, H], subplot=(4,3), clf=False,
-                          align='', cmap=plt.cm.hot, colorbar=False)
-        plt.draw()
 
     def initialize(self):
         """Initializes the parameters
@@ -362,7 +343,7 @@ class PLCA(object):
         logprob = self.compute_logprob(W, Z, H, WZH)
 
         VdivWZH = self.V / WZH
-        for z in xrange(self.rank):
+        for z in range(self.rank):
             tmp = np.outer(W[:,z] * Z[z], H[z,:]) * VdivWZH
             self.VRW[:,z] = tmp.sum(1)
             self.VRH[:,z] = tmp.sum(0)
@@ -417,7 +398,7 @@ class PLCA(object):
                                             niter=30, convergence_thresh=1e-7,
                                             axis=None):
         """Uses the approximation to the entropic prior from Matt Hoffman."""
-        for i in xrange(niter):
+        for i in range(niter):
             lastparam = param.copy()
             alpha = normalize(param**(nu / (nu - 1.0)), axis)
             param = normalize(evidence + beta * nu * alpha, axis)
@@ -483,51 +464,9 @@ class SIPLCA(PLCA):
         rank, T = H.shape
 
         WZH = np.zeros((F, T))
-        for tau in xrange(win):
+        for tau in range(win):
             WZH += np.dot(W[:,:,tau] * Z, shift(H, tau, 1, circular))
         return norm * WZH
-
-    def plot(self, V, W, Z, H, curriter=-1):
-        rank = len(Z)
-        nrows = rank + 2
-        WZH = self.reconstruct(W, Z, H, circular=self.circular)
-        plottools.plotall([V, WZH] + [self.reconstruct(W[:,z,:], Z[z], H[z,:],
-                                                       circular=self.circular)
-                                      for z in xrange(len(Z))],
-                          title=['V (Iteration %d)' % curriter,
-                                 'Reconstruction'] +
-                          ['Basis %d reconstruction' % x
-                           for x in xrange(len(Z))],
-                          colorbar=False, grid=False, cmap=plt.cm.hot,
-                          subplot=(nrows, 2), order='c', align='xy')
-        plottools.plotall([None] + [Z], subplot=(nrows, 2), clf=False,
-                          plotfun=lambda x: plt.bar(np.arange(len(x)) - 0.4, x),
-                          xticks=[[], range(rank)], grid=False,
-                          colorbar=False, title='Z')
-
-        plots = [None] * (3*nrows + 2)
-        titles = plots + ['W%d' % x for x in range(rank)]
-        wxticks = [[]] * (3*nrows + rank + 1) + [range(0, W.shape[2], 10)]
-        plots.extend(W.transpose((1, 0, 2)))
-        plottools.plotall(plots, subplot=(nrows, 6), clf=False, order='c',
-                          align='xy', cmap=plt.cm.hot, colorbar=False,
-                          ylabel=r'$\parallel$', grid=False,
-                          title=titles, yticks=[[]], xticks=wxticks)
-
-        plots = [None] * (2*nrows + 2)
-        titles=plots + ['H%d' % x for x in range(rank)]
-        if np.squeeze(H).ndim < 4:
-            plotH = np.squeeze(H)
-        else:
-            plotH = H.sum(2)
-        if rank == 1:
-            plotH = [plotH]
-        plots.extend(plotH)
-        plottools.plotall(plots, subplot=(nrows, 3), order='c', align='xy',
-                          grid=False, clf=False, title=titles, yticks=[[]],
-                          colorbar=False, cmap=plt.cm.hot, ylabel=r'$*$',
-                          xticks=[[]]*(3*nrows-1) + [range(0, V.shape[1], 100)])
-        plt.show()
 
     def initialize(self):
         W, Z, H = super(SIPLCA, self).initialize()
@@ -543,7 +482,7 @@ class SIPLCA(PLCA):
         VdivWZH = (self.V / (WZH + EPS))[:,:,np.newaxis]
         self.VRW[:] = 0
         self.VRH[:] = 0
-        for tau in xrange(self.win):
+        for tau in range(self.win):
             Ht = shift(H, tau, 1, self.circular)
             tmp = WZ[:,:,tau][:,np.newaxis,:] * Ht.T[np.newaxis,:,:] * VdivWZH
             self.VRW[:,:,tau] += tmp.sum(1)
@@ -651,7 +590,7 @@ class SIPLCA2(SIPLCA):
             circularF = circularT = circular
 
         recon = 0
-        for z in xrange(rank):
+        for z in range(rank):
             recon += sp.signal.fftconvolve(W[:,z,:] * Z[z], H[z,:,:])
 
         WZH = recon[:F,:T]
@@ -682,9 +621,9 @@ class SIPLCA2(SIPLCA):
         VdivWZH = (self.V / (WZH + EPS))[:,:,np.newaxis]
         self.VRW[:] = 0
         self.VRH[:] = 0
-        for r in xrange(self.winF):
+        for r in range(self.winF):
             WZshifted = shift(WZ, r, 0, self.circularF)
-            for tau in xrange(self.winT):
+            for tau in range(self.winT):
                 Hshifted = shift(H[:,r,:], tau, 1, self.circularT)
                 tmp = ((WZshifted[:,:,tau][:,:,np.newaxis]
                         * Hshifted[np.newaxis,:,:]).transpose((0,2,1))
@@ -811,7 +750,7 @@ class DiscreteWSIPLCA2(FactoredSIPLCA2):
         self.taus = []
         self.tauproportions = []
         for n, warp in enumerate(self.warpfactors):
-            currtaus = np.floor(warp * np.arange(self.win/warp))
+            currtaus = np.floor(warp * np.arange(self.win//warp))
 
             currtauproportions = np.empty(len(currtaus))
             for m,tau in enumerate(currtaus):
@@ -838,7 +777,7 @@ class DiscreteWSIPLCA2(FactoredSIPLCA2):
             circularF = circularT = circular
 
         recon = np.zeros((F, T))
-        for r in xrange(self.winF):
+        for r in range(self.winF):
             Wshifted = shift(W, r, 0, circularF)
             for n, warp in enumerate(self.warpfactors):
                 for delay, tau in enumerate(self.taus[n]):
@@ -862,7 +801,7 @@ class DiscreteWSIPLCA2(FactoredSIPLCA2):
         VdivWZH = (self.V / (WZH + EPS))[:,:,np.newaxis]
         self.VRW[:] = 0
         self.VRH[:] = 0
-        for r in xrange(self.winF):
+        for r in ange(self.winF):
             WZshifted = shift(WZ, r, 0, self.circularF)
             for n, warp in enumerate(self.warpfactors):
                 for delay, tau in enumerate(self.taus[n]):

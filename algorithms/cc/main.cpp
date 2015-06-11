@@ -20,6 +20,26 @@ __email__ = "oriol@nyu.edu"
 
 using namespace std;
 
+#if PY_MAJOR_VERSION >= 3
+    #define MOD_DEF(ob, name, doc, methods) \
+        static struct PyModuleDef moduledef = { \
+            PyModuleDef_HEAD_INIT, name, doc, -1, methods, }; \
+        ob = PyModule_Create(&moduledef);
+#else
+    #define MOD_DEF(ob, name, doc, methods) \
+        ob = Py_InitModule3(name, methods, doc);
+#endif
+
+#if PY_MAJOR_VERSION >= 3
+    #define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
+#else
+    #define MOD_INIT(name) PyMODINIT_FUNC init##name(void)
+#endif
+
+#if PY_MAJOR_VERSION >= 3
+    #define PyInt_FromLong PyLong_FromLong
+#endif
+
 static PyObject* segment(PyObject *self, PyObject *args);
 
 static PyMethodDef CCMethods[] = {
@@ -28,18 +48,32 @@ static PyMethodDef CCMethods[] = {
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
-
-PyMODINIT_FUNC initcc_segmenter(void)
+static PyObject * moduleinit(void)
 {
-    PyObject *m = Py_InitModule3("cc_segmenter", CCMethods,
-            "Module to segment audio files using the Constrained Clustering method");
+    PyObject *m;
+    MOD_DEF(m, "cc_segmenter", "Module to segment audio files using the Constrained Clustering method", CCMethods);
 
     if (m == NULL)
-        return;
+        return NULL;
 
-    /* Load `numpy` functionality. */
-    import_array();
+    return m;
 }
+
+#if PY_MAJOR_VERSION < 3
+PyMODINIT_FUNC initcc_segmenter(void) {
+    /* Load numpy functionality. */
+    import_array();
+
+    moduleinit();
+}
+#else
+PyMODINIT_FUNC PyInit_cc_segmenter(void) {
+    /* Load numpy functionality. */
+    import_array();
+
+    return moduleinit();
+}
+#endif
 
 /*
  * Assigns the data in array "data" to the 2D vector v, of sizes N x M.
