@@ -5,7 +5,20 @@ contains algorithms that were originally published under a GPL license.
 
 ## Install
 
-TODO
+First, download the original [MSAF](https://github.com/urinieto/msaf).
+Then, copy `setup.py` into the orignal MSAF folder (overwrite the original `setup.py`).
+It might look something like this:
+    
+    $> cp msaf-gpl/setup.py msaf/
+
+Copy all the algorithms into the original MSAF:
+
+    $> cp -R msaf-gpl/algorithms/* msaf/algorithms/
+
+Finally go to the original MSAF folder and install MSAF, like this:
+
+    $> cd msaf
+    $> python setup.py install
 
 ## Boundary Algorithms ##
 
