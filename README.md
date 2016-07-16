@@ -15,9 +15,8 @@ Copy all the algorithms into the original MSAF:
 
     $> cp -R msaf-gpl/algorithms/* msaf/algorithms/
 
-Finally go to the original MSAF folder and (re-)install MSAF, like this:
+Finally (re-)install MSAF, like this:
 
-    $> cd msaf
     $> python setup.py install
 
 ## Boundary Algorithms ##

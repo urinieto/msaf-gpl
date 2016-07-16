@@ -408,13 +408,12 @@ class Segmenter(SegmenterInterface):
         F = self._preprocess()
 
         # Read frame times
-        self.hpcp, self.mfcc, self.tonnetz, self.cqt, beats, dur, self.anal = \
-            msaf.io.get_features(self.audio_file, annot_beats=self.annot_beats,
-                                 framesync=self.framesync,
-                                 pre_features=self.features)
-        frame_times = beats
-        if self.framesync:
-            frame_times = msaf.utils.get_time_frames(dur, self.anal)
+        #self.hpcp, self.mfcc, self.tonnetz, self.cqt, beats, dur, self.anal = \
+            #msaf.io.get_features(self.audio_file, annot_beats=self.annot_beats,
+                                 #framesync=self.framesync,
+                                 #pre_features=self.features)
+
+        frame_times = self.features.frame_times
 
         # Additional SI-PLCA params
         self.config["plotiter"] = None
@@ -433,10 +432,8 @@ class Segmenter(SegmenterInterface):
 
         # Align with annotated boundaries if needed
         if self.in_bound_idxs is not None:
-            est_labels = msaf.utils.synchronize_labels(self.in_bound_idxs,
-                                                       est_idxs,
-                                                       est_labels,
-                                                       F.shape[0])
+            est_labels = msaf.utils.synchronize_labels(
+                self.in_bound_idxs, est_idxs, est_labels, F.shape[0])
             est_idxs = self.in_bound_idxs
 
         # Remove paramaters that we don't want to store
