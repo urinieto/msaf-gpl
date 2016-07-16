@@ -13,10 +13,11 @@ import logging
 import numpy as np
 
 # Local stuff
+import msaf
 from msaf.algorithms.interface import SegmenterInterface
 try:
     from msaf.algorithms.cc import cc_segmenter
-except:
+except ImportError:
     pass
 
 
@@ -30,12 +31,8 @@ class Segmenter(SegmenterInterface):
         est_labels : np.array(N-1)
             Estimated labels for the segments.
         """
-        min_frames = 15
         # Preprocess to obtain features, times, and input boundary indeces
         F = self._preprocess(normalize=True)
-        #import pylab as plt
-        #plt.imshow(F.T, interpolation="nearest", aspect="auto")
-        #plt.show()
 
         # Check if the cc module is compiled
         try:
@@ -43,15 +40,15 @@ class Segmenter(SegmenterInterface):
         except:
             logging.warning("CC not compiled, returning empty segmentation")
             if self.in_bound_idxs is None:
-                return np.array([0, F.shape[0] - 1]), [0]
+                return np.array([0, F.shape[0] - 1]), [-1]
             else:
-                return self.in_bound_idxs, [0] * (len(self.in_bound_idxs) - 1)
+                return self.in_bound_idxs, [-1] * (len(self.in_bound_idxs) - 1)
 
-        if F.shape[0] > min_frames:
-            if self.feature_str == "hpcp" or self.feature_str == "tonnetz" or \
+        if F.shape[0] > self.config["min_frames"]:
+            if self.feature_str == "pcp" or self.feature_str == "tonnetz" or \
                     self.feature_str == "cqt":
                 is_harmonic = True
-            elif self.feature_str == "mfcc":
+            elif self.feature_str == "mfcc" or self.feature_str == "tempogram":
                 is_harmonic = False
             else:
                 raise RuntimeError("Feature type %s is not valid" %
@@ -65,17 +62,18 @@ class Segmenter(SegmenterInterface):
                     (len(in_bound_idxs) > 2 or len(in_bound_idxs) == 0):
                 est_idxs, est_labels = cc_segmenter.segment(
                     is_harmonic, self.config["nHMMStates"],
-                    self.config["nclusters"], self.config["neighbourhoodLimit"],
-                    self.anal["sample_rate"], F, in_bound_idxs)
+                    self.config["nclusters"],
+                    self.config["neighbourhoodLimit"],
+                    msaf.config.sample_rate, F, in_bound_idxs)
             else:
                 est_idxs = in_bound_idxs
-                est_labels = [0]
+                est_labels = [-1]
 
         else:
             # The track is too short. We will only output the first and last
             # time stamps
             est_idxs = np.array([0, F.shape[0] - 1])
-            est_labels = [1]
+            est_labels = [-1]
 
         # Make sure that the first and last boundaries are included
         assert est_idxs[0] == 0  and est_idxs[-1] == F.shape[0] - 1

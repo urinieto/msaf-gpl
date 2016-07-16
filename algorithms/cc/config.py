@@ -4,7 +4,8 @@
 config = {
     "nHMMStates"            : 80,
     "nclusters"             : 6,
-    "neighbourhoodLimit"    : 16
+    "neighbourhoodLimit"    : 16,
+    "min_frames"            : 15
 }
 
 algo_id = "cc"
