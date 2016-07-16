@@ -404,15 +404,9 @@ class Segmenter(SegmenterInterface):
             Estimated labels for the segments.
         """
         # Preprocess to obtain features
-        #F = self._preprocess(valid_features=["hpcp", "tonnetz"])
         F = self._preprocess()
 
         # Read frame times
-        #self.hpcp, self.mfcc, self.tonnetz, self.cqt, beats, dur, self.anal = \
-            #msaf.io.get_features(self.audio_file, annot_beats=self.annot_beats,
-                                 #framesync=self.framesync,
-                                 #pre_features=self.features)
-
         frame_times = self.features.frame_times
 
         # Additional SI-PLCA params
