@@ -18,6 +18,7 @@ Copy all the algorithms into the original MSAF:
 Finally (re-)install MSAF, like this:
 
     $> python setup.py install
+    $> pip install -e .
 
 ## Boundary Algorithms ##
 
