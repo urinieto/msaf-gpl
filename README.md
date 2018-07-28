@@ -13,7 +13,7 @@ It might look something like this:
 
 Copy all the algorithms into the original MSAF:
 
-    $> cp -R msaf-gpl/algorithms/* msaf/algorithms/
+    $> cp -R msaf-gpl/algorithms/* msaf/msaf/algorithms/
 
 Finally (re-)install MSAF, like this:
 
