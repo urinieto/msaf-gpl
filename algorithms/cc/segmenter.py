@@ -32,7 +32,7 @@ class Segmenter(SegmenterInterface):
             Estimated labels for the segments.
         """
         # Preprocess to obtain features, times, and input boundary indeces
-        F = self._preprocess(normalize=True)
+        F = self._preprocess()
 
         # Check if the cc module is compiled
         try:
