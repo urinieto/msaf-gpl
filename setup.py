@@ -3,7 +3,6 @@ import glob
 import imp
 import sys
 import numpy.distutils.misc_util
-from distutils import sysconfig
 
 version = imp.load_source('msaf.version', 'msaf/version.py')
 
@@ -56,6 +55,7 @@ setup(
     url='https://github.com/urinieto/msaf',
     download_url='https://github.com/urinieto/msaf/releases',
     packages=find_packages(),
+    package_data={'msaf': ['algorithms/olda/models/*.npy']},
     data_files=[('msaf/algorithms/olda/models',
                  glob.glob('msaf/algorithms/olda/models/*.npy'))],
     long_description="""A python module to segment audio into all its """
@@ -70,27 +70,29 @@ setup(
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4"
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6"
     ],
     keywords='audio music sound',
-    license='MIT',
+    license='GPL',
     install_requires=[
         'audioread',
+        'cvxopt',
+        'decorator',
         'enum34',
         'future',
-        'jams',
-        'numpy >= 1.8.0',
-        'scipy >= 0.13.0',
-        'scikit-learn >= 0.17.0',
-        'seaborn',  # For notebook example (but everyone should have this :-))
-        'matplotlib',
+        'jams >= 0.3.0',
         'joblib',
-        'decorator',
-        'cvxopt',
-        'joblib',
-        'librosa >= 0.4.2',
+        'librosa >= 0.6.0',
         'mir_eval',
-        'pandas'
+        'matplotlib >= 1.5',
+        'numpy >= 1.8.0',
+        'pandas',
+        'scikit-learn >= 0.17.0',
+        'scipy >= 0.13.0',
+        'seaborn',  # For notebook example (but everyone should have this :-))
+        'vmo >= 0.3.3'
     ],
     extras_require={
         'resample': 'scikits.samplerate>=0.3'
